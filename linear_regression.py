@@ -32,8 +32,9 @@ def sgd(params, learning_rate, batch_size):
 if __name__ == "__main__":
     dataset = pd.read_csv(os.path.join(".", "dataset", "1000_Companies.csv"))
     dataset.drop("State", axis=1, inplace=True)
+    dataset_norm = (dataset - dataset.mean()) / dataset.std()
 
-    inputs, outputs = dataset.iloc[:, :-1], dataset.iloc[:, -1]
+    inputs, outputs = dataset_norm.iloc[:, :-1], dataset_norm.iloc[:, -1]
 
     features_train, features_test, labels_train, labels_test = train_test_split(inputs, outputs, test_size=0.2, random_state=0)
 
@@ -41,13 +42,18 @@ if __name__ == "__main__":
     b = torch.zeros(1, requires_grad=True)
     batch_size = 80
     lr = 0.01
-    num_epoch = 3
+    num_epoch = 20
     net = linear_regression
     loss = squared_loss
 
-    for X, y in data_iter(batch_size, torch.from_numpy(features_train.values), torch.from_numpy(labels_train.values)):
-        l = loss(net(X, w, b), y)
-        l.sum().backward()
-        sgd([w, b], lr, batch_size)
-        print("w: ", w)
-        print("b: ", b)
+    for i in range(num_epoch):
+        for X, y in data_iter(batch_size, torch.from_numpy(features_train.values), torch.from_numpy(labels_train.values)):
+            l = loss(net(X, w, b), y)
+            l.sum().backward()
+            sgd([w, b], lr, batch_size)
+        train_l = loss(net(torch.from_numpy(features_test.values), w, b), torch.from_numpy(labels_test.values))
+        print(f"batch {i + 1}, lost: {train_l.sum():f}")
+
+    predict_test = net(torch.from_numpy(features_test.values), w, b).detach().numpy()
+    print("R2 score: ", r2_score(labels_test.values, predict_test))
+

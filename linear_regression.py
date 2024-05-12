@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import pandas as pd
 import os
+from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 from torch.utils import data
 from torch import nn
@@ -35,3 +36,4 @@ if __name__ == "__main__":
             trainer.step()
         l = loss(net(features_test), labels_test)
         print(f'epoch {epoch + 1}, loss {l:f}')
+        print(r2_score(net(features_test).detach().numpy(), labels_test.detach().numpy()))

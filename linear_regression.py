@@ -53,7 +53,7 @@ if __name__ == "__main__":
             sgd([w, b], lr, batch_size)
         train_l = loss(net(torch.from_numpy(features_test.values), w, b), torch.from_numpy(labels_test.values))
         print(f"batch {i + 1}, lost: {train_l.sum():f}")
+        predict_test = net(torch.from_numpy(features_test.values), w, b).detach().numpy()
+        print("R2 score: ", r2_score(labels_test.values, predict_test))
 
-    predict_test = net(torch.from_numpy(features_test.values), w, b).detach().numpy()
-    print("R2 score: ", r2_score(labels_test.values, predict_test))
 

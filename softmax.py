@@ -31,7 +31,12 @@ def mnist_random_sample_img(dataset, nrows=5, ncols=5, cmap='hot'):
     plt.show()
 
 def cross_entropy(y_pred, y):
-    return - torch.log(y_pred[range(len(y_pred)), y])
+    return -torch.log(y_pred[range(len(y_pred)), y])
+
+def accuracy(y_hat, y) -> float:
+    if len(y_hat.shape) > 1 and y_hat.shape[1] > 1:
+        y_hat = y_hat.argmax(axis=1)
+    return float((y_hat == y).sum()) / len(y)
 
 if __name__ == "__main__":
     dim_input = 784
@@ -68,9 +73,9 @@ if __name__ == "__main__":
 
     start_time = time.time()
     for i, (X, y_true) in enumerate(train_loader):
-        print(net(X, w, b))
+        print(accuracy(net(X, w, b), y_true))
     end_time = time.time()
 
-    mnist_random_sample_img(data_test, 5, 10)
+    mnist_random_sample_img(data_test, 2, 5)
 
     print(end_time - start_time)

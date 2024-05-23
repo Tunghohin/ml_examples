@@ -7,7 +7,25 @@ import random
 from torch.utils import data
 from torchvision import transforms
 
-def softmax_classification(X, W, b):
+W = torch.normal(0, 0.01, size=(784, 10), requires_grad=True)
+b = torch.zeros(10, requires_grad=True)
+batch_size = 1000
+
+
+class Accumulator:
+    def __init__(self, n):
+        self.data = [0.0] * n
+
+    def __getitem__(self, idx) -> float: 
+        return self.data[idx]
+    
+    def add(self, *args):
+        self.data = [a + float(b) for a, b in zip(self.data, args)]
+
+    def reset(self):
+        self.data = [0.0] * len(self.data)
+    
+def softmax_classification(X):
     return softmax(torch.matmul(X.reshape(-1, W.shape[0]), W) + b)
 
 def softmax(X):
@@ -36,16 +54,37 @@ def cross_entropy(y_pred, y):
 def accuracy(y_hat, y) -> float:
     if len(y_hat.shape) > 1 and y_hat.shape[1] > 1:
         y_hat = y_hat.argmax(axis=1)
-    return float((y_hat == y).sum()) / len(y)
+    return float((y_hat == y).sum())
+
+def evaluate_accuracy(net, data_iter):
+    if isinstance(net, torch.nn.Module):
+        net.eval()
+    matric = Accumulator(2)
+    with torch.no_grad():
+        for X, y in data_iter:
+            matric.add(accuracy(net(X), y), y.numel())
+    return matric[0] / matric[1]
+
+def train_epoch(net, train_iter, loss, updater):
+    if isinstance(net, torch.nn.Module):
+        net.train()
+    metric = Accumulator(3) #
+    for X, y in train_iter:
+        y_pred = net(X)
+        l = loss(y_pred, y)
+        if isinstance(updater, torch.optim.Optimizer):
+            updater.zero_grad()
+            l.mean().backward()
+            updater.step()
+        else:
+            l.sum().backward()
+            updater(X.shape[0])
+        
+    
 
 if __name__ == "__main__":
-    dim_input = 784
-    dim_output = 10
     net = softmax_classification
     loss = cross_entropy
-    w = torch.normal(0, 0.01, size=(dim_input, dim_output), requires_grad=True)
-    b = torch.zeros(dim_output, requires_grad=True)
-    batch_size = 1000
 
     data_train = torchvision.datasets.FashionMNIST(
         root="./dataset", 
@@ -73,9 +112,12 @@ if __name__ == "__main__":
 
     start_time = time.time()
     for i, (X, y_true) in enumerate(train_loader):
-        print(accuracy(net(X, w, b), y_true))
+        print(accuracy(net(X), y_true) / y_true.numel())
+        break
     end_time = time.time()
 
-    mnist_random_sample_img(data_test, 2, 5)
+    print(evaluate_accuracy(net, train_loader))
 
     print(end_time - start_time)
+
+    # mnist_random_sample_img(data_test, 2, 5)

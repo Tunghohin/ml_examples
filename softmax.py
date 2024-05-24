@@ -2,8 +2,8 @@ import torchvision
 import random
 import torch
 import time
-from itertools import starmap
 import matplotlib.pyplot as plt
+from itertools import starmap
 from torch.utils import data
 from torchvision import transforms
 from torch import nn
@@ -109,7 +109,6 @@ if __name__ == "__main__":
     for i in range(num_epoch):
         print(f"epoch: {i + 1}/{num_epoch}")
         model_train(train_loader, net, loss_fn, optimizer)
-        break
     end_time = time.time()
 
     avg = sum(

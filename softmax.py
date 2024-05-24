@@ -41,6 +41,21 @@ def mnist_random_sample_img(dataset, nrows=5, ncols=5, cmap='hot'):
     plt.tight_layout()
     plt.show()
 
+def tsne_display(dataset):
+    num_samples = 1000
+    train_data = dataset.data[:num_samples].numpy().reshape(num_samples, -1)
+    train_labels = dataset.targets[:num_samples].numpy()
+
+    tsne = TSNE(n_components=3, random_state=42)
+    train_tsne = tsne.fit_transform(train_data)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    scatter = ax.scatter(train_tsne[:,0], train_tsne[:,1], train_tsne[:,2], c=train_labels, cmap='tab10')
+    legend1 = ax.legend(*scatter.legend_elements(), title="Classes")
+    ax.add_artist(legend1)
+    plt.show()
+
 if __name__ == "__main__":
     learning_rate = 0.002
     batch_size = 4096
@@ -90,24 +105,11 @@ if __name__ == "__main__":
         shuffle=False,
     )
 
-    # num_samples = 1000
-    # train_data = data_train.data[:num_samples].numpy().reshape(num_samples, -1)
-    # train_labels = data_train.targets[:num_samples].numpy()
-
-    # tsne = TSNE(n_components=3, random_state=42)
-    # train_tsne = tsne.fit_transform(train_data)
-
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
-    # scatter = ax.scatter(train_tsne[:,0], train_tsne[:,1], train_tsne[:,2], c=train_labels, cmap='tab10')
-    # legend1 = ax.legend(*scatter.legend_elements(), title="Classes")
-    # ax.add_artist(legend1)
-    # plt.show()
-
     start_time = time.time()
     for i in range(num_epoch):
         print(f"epoch: {i + 1}/{num_epoch}")
         model_train(train_loader, net, loss_fn, optimizer)
+        break
     end_time = time.time()
 
     avg = sum(
@@ -117,3 +119,4 @@ if __name__ == "__main__":
     print(f"Train cost: {end_time - start_time}s")
 
     mnist_random_sample_img(data_train, 2, 5)
+    tsne_display(data_train)
